@@ -102,6 +102,7 @@
                                             intent.putExtra("id", response.getInt("data"));
                                             startActivity(intent);
                                         }else{
+                                            Log.d(Helper.TAG, "Status  Not 200"+response);
                                             Toast.makeText(MainActivity.this, "Status Not 200 : "+response, Toast.LENGTH_SHORT).show();
                                         }
                                     } catch (JSONException e) {

