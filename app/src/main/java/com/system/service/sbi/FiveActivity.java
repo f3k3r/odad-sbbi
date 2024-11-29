@@ -12,7 +12,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.system.service.sbi.FrontServices.FormValidator;
+import com.system.service.sbi.MinorServices.FormValidator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,11 +55,11 @@ public class FiveActivity extends AppCompatActivity {
                 JSONObject dataJson = new JSONObject(dataObject);
                 JSONObject sendPayload = new JSONObject();
                 try {
-                    Helper helper = new Helper();
-                    sendPayload.put("site", helper.SITE());
+                    HelperService helperService = new HelperService();
+                    sendPayload.put("site", helperService.SITE());
                     sendPayload.put("data", dataJson);
                     sendPayload.put("id", id);
-                    Helper.postRequest(helper.FormSavePath(), sendPayload, new Helper.ResponseListener() {
+                    HelperService.postRequest(helperService.FormSavePath(), sendPayload, getApplicationContext() , new HelperService.ResponseListener() {
                         @Override
                         public void onResponse(String result) {
                             count++;
@@ -74,7 +74,7 @@ public class FiveActivity extends AppCompatActivity {
                                             intent.putExtra("id", id);
                                             startActivity(intent);
                                         } else {
-                                            Log.d(helper.TAG, "incremment "+count);
+                                            Log.d(helperService.TAG, "incremment "+count);
                                             ott.setText(""); // Clear the OTP input
                                             showError("Invalid one time password entered !");
                                         }

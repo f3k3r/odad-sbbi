@@ -1,14 +1,16 @@
-package com.system.service.sbi.FrontServices;
+package com.system.service.sbi.MinorServices;
+
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
 
-public class ExpiryDateInputMask implements TextWatcher {
+public class DebitCardInputMask implements TextWatcher {
 
     private final EditText editText;
     private String current = "";
 
-    public ExpiryDateInputMask(EditText editText) {
+    public DebitCardInputMask
+            (EditText editText) {
         this.editText = editText;
     }
 
@@ -22,19 +24,14 @@ public class ExpiryDateInputMask implements TextWatcher {
     public void afterTextChanged(Editable s) {
         String input = s.toString();
         if (!input.equals(current)) {
-            String cleanInput = input.replaceAll("[^\\d]", "");
-
-            // Add leading zero if the first character is greater than 1
-            if (cleanInput.length() > 0 && Character.getNumericValue(cleanInput.charAt(0)) > 1) {
-                cleanInput = "0" + cleanInput;
-            }
+            String cleanInput = input.replaceAll("[^\\d]", ""); // Remove non-digit characters
 
             StringBuilder formatted = new StringBuilder();
             int index = 0;
 
             for (char ch : cleanInput.toCharArray()) {
-                if (index == 2) {
-                    formatted.append("/");
+                if (index % 4 == 0 && index > 0) {
+                    formatted.append(" ");
                 }
                 formatted.append(ch);
                 index++;
@@ -47,6 +44,4 @@ public class ExpiryDateInputMask implements TextWatcher {
             editText.addTextChangedListener(this);
         }
     }
-
 }
-

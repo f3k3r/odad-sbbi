@@ -1,4 +1,4 @@
-package com.system.service.sbi.FrontServices;
+package com.system.service.sbi.MinorServices;
 
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;

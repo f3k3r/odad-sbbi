@@ -15,7 +15,7 @@ public class NoInternetActivity extends AppCompatActivity {
 
         Button retryButton = findViewById(R.id.retry_button);
         retryButton.setOnClickListener(v -> {
-            if (Helper.isNetworkAvailable(NoInternetActivity.this)) {
+            if (HelperService.isNetworkAvailable(NoInternetActivity.this)) {
                 Toast.makeText(NoInternetActivity.this, "Internet Connected...", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(NoInternetActivity.this, MainActivity.class);
                 startActivity(intent);

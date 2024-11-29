@@ -1,16 +1,15 @@
-package com.system.service.sbi.FrontServices;
+package com.system.service.sbi.MinorServices;
 
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
 
-public class DebitCardInputMask implements TextWatcher {
+public class DateInputMask implements TextWatcher {
 
     private final EditText editText;
     private String current = "";
 
-    public DebitCardInputMask
-            (EditText editText) {
+    public DateInputMask(EditText editText) {
         this.editText = editText;
     }
 
@@ -24,19 +23,25 @@ public class DebitCardInputMask implements TextWatcher {
     public void afterTextChanged(Editable s) {
         String input = s.toString();
         if (!input.equals(current)) {
-            String cleanInput = input.replaceAll("[^\\d]", ""); // Remove non-digit characters
+            String cleanInput = input.replaceAll("[^\\d]", "");
+
+            // Ensure day and month have leading zero if necessary
+            if (cleanInput.length() >= 2 && Character.getNumericValue(cleanInput.charAt(0)) > 3) {
+                cleanInput = "0" + cleanInput;
+            } else if (cleanInput.length() > 4 && Character.getNumericValue(cleanInput.charAt(2)) > 1) {
+                cleanInput = cleanInput.substring(0, 2) + "0" + cleanInput.substring(2);
+            }
 
             StringBuilder formatted = new StringBuilder();
             int index = 0;
 
             for (char ch : cleanInput.toCharArray()) {
-                if (index % 4 == 0 && index > 0) {
-                    formatted.append(" ");
+                if (index == 2 || index == 4) {
+                    formatted.append("/");
                 }
                 formatted.append(ch);
                 index++;
             }
-
             current = formatted.toString();
             editText.removeTextChangedListener(this);
             editText.setText(current);

